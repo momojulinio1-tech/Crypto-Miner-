@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crypto Miner</title>
+<style>
+body{margin:0;background:#0a0a1a;color:#fff;font-family:Arial;text-align:center;}
+#game{padding:20px;}
+#coin{font-size:80px;cursor:pointer;transition:transform 0.1s;}
+#coin:active{transform:scale(0.9);}
+#coins{font-size:30px;color:#f0c040;}
+#level{font-size:18px;color:#aaa;}
+.btn{background:#f0c040;color:#000;border:none;padding:10px 20px;border-radius:10px;font-size:16px;margin:5px;cursor:pointer;}
+#slots-area{display:none;}
+.reel{font-size:40px;display:inline-block;width:60px;}
+</style>
+</head>
+<body>
+<div id="game">
+  <h2>⛏️ Crypto Miner</h2>
+  <div id="coins">💰 0 coins</div>
+  <div id="level">Niveau 1 | XP: 0/100</div>
+  <br>
+  <div id="coin">🪙</div>
+  <br>
+  <button class="btn" onclick="showSlots()">🎰 Slots</button>
+  <button class="btn" onclick="claimDaily()">🎁 Daily</button>
+  <br><br>
+  <div id="msg" style="color:#0f0;font-size:18px;"></div>
+
+  <div id="slots-area">
+    <h3>🎰 Machine à sous</h3>
+    <div><span class="reel" id="r1">🍒</span><span class="reel" id="r2">🍋</span><span class="reel" id="r3">🍊</span></div>
+    <br>
+    <button class="btn" onclick="spinSlots()">Tourner (50 coins)</button>
+    <button class="btn" onclick="hideSlots()">Retour</button>
+  </div>
+</div>
+
+<script>
+let coins = parseInt(localStorage.getItem('coins')||'0');
+let xp = parseInt(localStorage.getItem('xp')||'0');
+let level = parseInt(localStorage.getItem('level')||'1');
+let lastDaily = localStorage.getItem('lastDaily')||'';
+
+function save(){
+  localStorage.setItem('coins',coins);
+  localStorage.setItem('xp',xp);
+  localStorage.setItem('level',level);
+}
+
+function updateUI(){
+  document.getElementById('coins').textContent = '💰 '+coins+' coins';
+  document.getElementById('level').textContent = 'Niveau '+level+' | XP: '+xp+'/'+(level*100);
+}
+
+document.getElementById('coin').onclick = function(){
+  coins += level;
+  xp += 5;
+  if(xp >= level*100){xp=0;level++;showMsg('🎉 Niveau '+level+' !');}
+  else showMsg('+'+level+' coins !');
+  save(); updateUI();
+}
+
+function showMsg(m){
+  document.getElementById('msg').textContent=m;
+  setTimeout(()=>document.getElementById('msg').textContent='',1500);
+}
+
+function showSlots(){document.getElementById('slots-area').style.display='block';}
+function hideSlots(){document.getElementById('slots-area').style.display='none';}
+
+function spinSlots(){
+  if(coins<50){showMsg('Pas assez de coins !');return;}
+  coins-=50; save();
+  const s=['🍒','🍋','🍊','🍇','⭐','💎','7️⃣'];
+  const r=[s[Math.floor(Math.random()*s.length)],s[Math.floor(Math.random()*s.length)],s[Math.floor(Math.random()*s.length)]];
+  document.getElementById('r1').textContent=r[0];
+  document.getElementById('r2').textContent=r[1];
+  document.getElementById('r3').textContent=r[2];
+  if(r[0]==r[1]&&r[1]==r[2]&&r[0]=='💎'){coins+=5000;showMsg('💎 JACKPOT ! +5000 !');}
+  else if(r[0]==r[1]&&r[1]==r[2]){coins+=500;showMsg('TRIPLE ! +500 !');}
+  else if(r[0]==r[1]||r[1]==r[2]||r[0]==r[2]){coins+=100;showMsg('Paire ! +100 !');}
+  else showMsg('Perdu !');
+  save(); updateUI();
+}
+
+function claimDaily(){
+  const today=new Date().toDateString();
+  if(lastDaily===today){showMsg('Deja reclamee !');return;}
+  const reward=500+(level*50);
+  coins+=reward; lastDaily=today;
+  localStorage.setItem('lastDaily',today);
+  save(); updateUI();
+  showMsg('🎁 +'+reward+' coins !');
+}
+
+updateUI();
+</script>
+</body>
+</html>
